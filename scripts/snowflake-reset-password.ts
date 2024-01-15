@@ -14,13 +14,23 @@ const snowflakeQueryApi = async (
   statement: string,
   bearerToken: string
 ) => {
-  const response = await fetch(api, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json;charset=UTF-8",
-      Authorization: `Bearer ${bearerToken}`,
-    },
-    body: JSON.stringify({ statement }),
-  });
-  return response;
+  try {
+    const response = await fetch(api, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json;charset=UTF-8",
+        Authorization: `Bearer ${bearerToken}`,
+      },
+      body: JSON.stringify({ statement }),
+    });
+
+    const responseStatusMap = new Map<string, object>([
+      ["200", response.json],
+      ["403", { status: "403", body: "Unauthorised Bearer token." }],
+      ["404", { status: "404", body: "URL/endpoint not found." }],
+    ]);
+    return responseStatusMap.get(String(response.status));
+  } catch (error) {
+    return error;
+  }
 };
